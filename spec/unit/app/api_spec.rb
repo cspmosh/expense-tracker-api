@@ -12,6 +12,12 @@ module ExpenseTracker
     let(:ledger) { instance_double('ExpenseTracker::Ledger')}
 
     describe 'POST /expenses' do
+
+      def postExpense(expense)
+        post '/expenses', JSON.generate(expense)
+        {'body' => JSON.parse(last_response.body), 'status' => last_response.status}
+      end
+      
       context 'when the expense is successfully recorded' do
         let(:expense) { { 'some' => 'data' } }
           
@@ -22,14 +28,13 @@ module ExpenseTracker
         end
 
         it 'returns the expense id' do
-          post '/expenses', JSON.generate(expense)
-          parsed = JSON.parse(last_response.body)
-          expect(parsed).to include('expense_id' => 417)
+          response = postExpense(expense)
+          expect(response['body']).to include('expense_id' => 417)
         end
 
         it 'responds with a 200 (OK)' do
-          post '/expenses', JSON.generate(expense)
-          expect(last_response.status).to eq(200)
+          response = postExpense(expense)
+          expect(response['status']).to eq(200)
         end
       end
       context 'when the expense fails validation' do
@@ -42,14 +47,13 @@ module ExpenseTracker
         end
 
         it 'returns an error message' do
-          post '/expenses', JSON.generate(expense)
-          parsed = JSON.parse(last_response.body)
-          expect(parsed).to include('error' => 'Expense incomplete')
+          response = postExpense(expense)
+          expect(response['body']).to include('error' => 'Expense incomplete')
         end
 
         it 'responds with a 422 (Unprocessable entity)' do 
-          post '/expenses', JSON.generate(expense)
-          expect(last_response.status).to eq(422)
+          response = postExpense(expense)
+          expect(response['status']).to eq(422)
         end
       end
     end
